@@ -201,8 +201,10 @@ document.getElementById("createdKeys").innerText = out.join("\n");
 }
 
 /* COPY */
-window.copyKeys=()=>{
-navigator.clipboard.writeText(createdKeys.innerText);
+
+window.copyKeys = () => {
+const text = document.getElementById("createdKeys").innerText;
+navigator.clipboard.writeText(text);
 alert("copied");
 }
 
@@ -216,18 +218,23 @@ a.click();
 }
 
 /* SEARCH */
-window.searchKey=async()=>{
-let key=searchKey.value.trim();
-let snap=await getDoc(doc(db,"keys",key));
+
+window.searchKey = async () => {
+
+let key = document.getElementById("searchKey").value.trim();
+
+let snap = await getDoc(doc(db,"keys",key));
+
+let out = document.getElementById("searchResult");
 
 if(!snap.exists()){
-searchResult.innerText="NOT FOUND";
+out.innerText = "NOT FOUND";
 return;
 }
 
-let d=snap.data();
+let d = snap.data();
 
-searchResult.innerText=
+out.innerText =
 `KEY: ${key}
 EXPIRE: ${new Date(d.expire).toLocaleString()}
 USED: ${d.used}
@@ -271,13 +278,16 @@ alert("reset done");
 }
 
 /* LOAD ALL */
-window.loadKeys=async()=>{
-let snap=await getDocs(collection(db,"keys"));
-let txt="";
 
-snap.forEach(d=>{
-let x=d.data();
-txt+=`
+window.loadKeys = async () => {
+
+let snap = await getDocs(collection(db,"keys"));
+
+let txt = "";
+
+snap.forEach(d => {
+let x = d.data();
+txt += `
 KEY: ${d.id}
 EXP: ${new Date(x.expire).toLocaleString()}
 USED: ${x.used}
@@ -287,20 +297,25 @@ DEVICE: ${x.device||"NONE"}
 `;
 });
 
-allKeys.innerText=txt;
+document.getElementById("allKeys").innerText = txt;
+
 }
 
 /* LOGS */
-window.loadLogs=async()=>{
-let snap=await getDocs(collection(db,"logs"));
-let txt="";
 
-snap.forEach(d=>{
-let x=d.data();
-txt+=`${x.time} | ${x.action} | ${x.key}\n`;
+window.loadLogs = async () => {
+
+let snap = await getDocs(collection(db,"logs"));
+
+let txt = "";
+
+snap.forEach(d => {
+let x = d.data();
+txt += `${x.time} | ${x.action} | ${x.key}\n`;
 });
 
-logs.innerText=txt;
+document.getElementById("logs").innerText = txt;
+
 }
 
 </script>
