@@ -16,18 +16,65 @@ pre{white-space:pre-wrap}
 <h2>Reczssa Admin</h2>
 
 <div class="box">
+
 <h3>สร้าง Keys</h3>
-<input id="prefix" placeholder="Prefix เช่น VIP">
-<input id="amount" type="number" placeholder="จำนวน">
-<input id="days" type="number" placeholder="อายุ (วัน)">
-<button onclick="createKeys()">Create</button>
+
+<input
+id="amount"
+type="number"
+placeholder="จำนวนคีย์"
+>
+
+<button onclick="createKeys()">
+
+Create Keys
+
+</button>
+
+<button
+onclick="copyKeys()"
+style="
+background:#222;
+margin-top:8px;
+">
+
+Copy All Keys
+
+</button>
+
+<pre
+id="createdKeys"
+style="
+margin-top:15px;
+background:#f4f4f4;
+padding:15px;
+border-radius:12px;
+min-height:120px;
+">
+
+</pre>
+
 </div>
 
 <div class="box">
-<h3>ค้นหา Key</h3>
-<input id="searchKey" placeholder="ค้นหาคีย์">
-<button onclick="searchKey()">Search</button>
-<pre id="searchResult"></pre>
+
+<h3>คีย์ทั้งหมด</h3>
+
+<button onclick="loadKeys()">
+
+Load All Keys
+
+</button>
+
+<pre
+id="searchResult"
+style="
+max-height:400px;
+overflow:auto;
+">
+
+</pre>
+
 </div>
 
 <div class="box">
@@ -61,201 +108,244 @@ View History
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
+
 getFirestore,
 doc,
 setDoc,
 getDoc,
 deleteDoc,
 updateDoc,
-arrayUnion
+arrayUnion,
+collection,
+getDocs
+
 }
-from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
 
 apiKey: "AIzaSyCrmHYYvKwJbsSp3sbJcmZIjEECmNNgh3c",
 
-authDomain:
-"reczssa-b396e.firebaseapp.com",
+authDomain: "reczssa-b396e.firebaseapp.com",
 
-projectId:
-"reczssa-b396e",
+projectId: "reczssa-b396e",
 
-storageBucket:
-"reczssa-b396e.firebasestorage.app",
+storageBucket: "reczssa-b396e.firebasestorage.app",
 
-messagingSenderId:
-"1053378935263",
+messagingSenderId: "1053378935263",
 
-appId:
-"1:1053378935263:web:54cc8d02c8d0af97442c6a"
+appId: "1:1053378935263:web:54cc8d02c8d0af97442c6a"
 
 };
 
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
-function rand(){
-return Math.random().toString(36).slice(2,8).toUpperCase();
-}
+function randomKey(){
 
-window.createKeys=async()=>{
-let prefix=document.getElementById("prefix").value||"KEY";
-let amount=parseInt(document.getElementById("amount").value)||1;
-let days=parseInt(document.getElementById("days").value)||1;
+const chars=
+"ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
 
-for(let i=0;i<amount;i++){
- let key=prefix+"-"+rand();
- let exp=new Date();
- exp.setDate(exp.getDate()+days);
+let out="";
 
- await setDoc(doc(db,"keys",key),{
- expire:exp.toISOString(),
- used:false,
- device:"",
- banned:false
- });
-}
-alert("Done");
-}
-
-window.searchKey=async()=>{
-let key=document.getElementById("searchKey").value.trim();
-const s=await getDoc(doc(db,"keys",key));
-if(!s.exists()){
-document.getElementById("searchResult").innerText="Not Found";
-return;
-}
-document.getElementById("searchResult").innerText=
-JSON.stringify(s.data(),null,2);
-}
-
-window.rekey=async()=>{
-let key=document.getElementById("manageKey").value.trim();
-await updateDoc(doc(db,"keys",key),{
-used:false,
-device:""
-});
-alert("Reset Done");
-}
-
-window.deleteKey=async()=>{
-let key=document.getElementById("manageKey").value.trim();
-await deleteDoc(doc(db,"keys",key));
-alert("Deleted");
-}
-
-window.saveLoginHistory =
-async function(key){
-
-try{
-
-const ref =
-doc(
-db,
-"keys",
-key
-);
-
-await updateDoc(
-ref,
-{
-
-history:
-
-arrayUnion({
-
-time:
-
-new Date()
-.toLocaleString(),
-
-device:
-
-localStorage
-.getItem(
-"device_id"
-)
-||
-"unknown",
-
-agent:
-
-navigator
-.userAgent
-
-})
-
-}
-
-);
-
-}catch(e){
-
-console.log(e);
-
-}
-
-}
-
-window.viewHistory =
-async function(){
-
-let key =
-document
-.getElementById(
-"historyKey"
-)
-.value
-.trim();
-
-const snap =
-await getDoc(
-
-doc(
-db,
-"keys",
-key
-)
-
-);
-
-if(
-!snap.exists()
+for(
+let i=0;
+i<12;
+i++
 ){
 
-document
-.getElementById(
-"historyResult"
-)
-.innerText=
-"Not Found";
-
-return;
+out+=chars[
+Math.floor(
+Math.random()
+*
+chars.length
+)];
 
 }
 
-const data =
-snap.data();
+return out;
+
+}
+
+window.createKeys =
+async function(){
+
+let amount =
+
+parseInt(
 
 document
 .getElementById(
-"historyResult"
-)
-.innerText=
+"amount"
+).value
 
-JSON.stringify(
+)||1;
 
-data.history
-||
-[],
+let created=[];
 
-null,
+for(
+let i=0;
+i<amount;
+i++
+){
 
-2
+let key=
+randomKey();
+
+let exp=
+new Date();
+
+exp.setDate(
+exp.getDate()+30
+);
+
+await setDoc(
+
+doc(db,"keys",key),
+
+{
+
+expire:
+exp.toISOString(),
+
+used:false,
+
+device:"",
+
+banned:false,
+
+history:[]
+
+}
 
 );
+
+created.push(
+key
+);
+
+}
+
+document
+.getElementById(
+"createdKeys"
+).innerText=
+
+created.join("\n");
+
+alert(
+"สร้าง "+
+created.length+
+" คีย์สำเร็จ"
+);
+
+}
+
+window.copyKeys=
+function(){
+
+navigator
+.clipboard
+.writeText(
+
+document
+.getElementById(
+"createdKeys"
+).innerText
+
+);
+
+alert(
+"คัดลอกแล้ว"
+);
+
+}
+
+window.loadKeys =
+async function(){
+
+const snap =
+
+await getDocs(
+
+collection(
+db,
+"keys"
+)
+
+);
+
+let text="";
+
+snap.forEach(docSnap=>{
+
+const d=
+docSnap.data();
+
+text+=
+
+"KEY : "
++
+docSnap.id
++
+"\n"
+
++
+
+"USED : "
++
+
+(
+d.used
+?
+"YES"
+:
+"NO"
+)
+
++
+"\n"
+
++
+
+"DEVICE : "
++
+
+(
+d.device
+||
+"NONE"
+)
+
++
+
+"\n"
+
++
+
+"EXPIRE : "
++
+
+d.expire
+
++
+
+"\n"
+
++
+
+"----------------\n";
+
+});
+
+document
+.getElementById(
+"searchResult"
+).innerText=
+
+text ||
+
+"No Keys";
 
 }
 
