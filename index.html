@@ -159,42 +159,45 @@ return k;
 }
 
 /* CREATE (D/H/M → ms) */
+
 window.createKeys = async function(){
 
-let amount=parseInt(amount.value)||1;
+let amount = parseInt(document.getElementById("amount").value) || 1;
 
-let d=parseInt(days.value)||0;
-let h=parseInt(hours.value)||0;
-let m=parseInt(mins.value)||0;
+let d = parseInt(document.getElementById("days").value) || 0;
+let h = parseInt(document.getElementById("hours").value) || 0;
+let m = parseInt(document.getElementById("mins").value) || 0;
 
-let expireMS =
-((d*24*60)+(h*60)+m) * 60 * 1000;
+let expireMS = ((d*24*60)+(h*60)+m) * 60 * 1000;
 
-if(expireMS<=0){
+if(expireMS <= 0){
 alert("ใส่เวลาอย่างน้อย 1 นาที");
 return;
 }
 
-let out=[];
+let out = [];
 
 for(let i=0;i<amount;i++){
 
-let key=randomKey();
+let key = randomKey();
 
 let expireDate = Date.now() + expireMS;
 
 await setDoc(doc(db,"keys",key),{
-expire:expireDate,
+expire: expireDate,
 used:false,
 device:"",
 banned:false
 });
 
-log("CREATE",key);
+log("CREATE", key);
+
 out.push(key);
 }
 
-createdKeys.innerText=out.join("\n");
+/* FIX OUTPUT */
+document.getElementById("createdKeys").innerText = out.join("\n");
+
 }
 
 /* COPY */
