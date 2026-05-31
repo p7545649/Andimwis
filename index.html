@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reczssa Admin</title>
+<style>
+body{font-family:Arial;margin:0;background:#fff8f1;padding:20px}
+.box{background:#fff;padding:20px;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,.08);margin-bottom:15px}
+input,button,textarea{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #ddd;box-sizing:border-box}
+button{background:#ff8c00;color:#fff;border:none;font-weight:bold}
+pre{white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h2>Reczssa Admin</h2>
+
+<div class="box">
+<h3>สร้าง Keys</h3>
+<input id="prefix" placeholder="Prefix เช่น VIP">
+<input id="amount" type="number" placeholder="จำนวน">
+<input id="days" type="number" placeholder="อายุ (วัน)">
+<button onclick="createKeys()">Create</button>
+</div>
+
+<div class="box">
+<h3>ค้นหา Key</h3>
+<input id="searchKey" placeholder="ค้นหาคีย์">
+<button onclick="searchKey()">Search</button>
+<pre id="searchResult"></pre>
+</div>
+
+<div class="box">
+<h3>ลบคีย์ / รีคีย์</h3>
+<input id="manageKey" placeholder="KEY">
+<button onclick="rekey()">Reset Device</button>
+<button onclick="deleteKey()">Delete Key</button>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getFirestore,doc,setDoc,getDoc,deleteDoc,updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCrmHYYvKwJbsSp3sbJcmZIjEECmNNgh3c",
+
+authDomain:
+"reczssa-b396e.firebaseapp.com",
+
+projectId:
+"reczssa-b396e",
+
+storageBucket:
+"reczssa-b396e.firebasestorage.app",
+
+messagingSenderId:
+"1053378935263",
+
+appId:
+"1:1053378935263:web:54cc8d02c8d0af97442c6a"
+
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+function rand(){
+return Math.random().toString(36).slice(2,8).toUpperCase();
+}
+
+window.createKeys=async()=>{
+let prefix=document.getElementById("prefix").value||"KEY";
+let amount=parseInt(document.getElementById("amount").value)||1;
+let days=parseInt(document.getElementById("days").value)||1;
+
+for(let i=0;i<amount;i++){
+ let key=prefix+"-"+rand();
+ let exp=new Date();
+ exp.setDate(exp.getDate()+days);
+
+ await setDoc(doc(db,"keys",key),{
+ expire:exp.toISOString(),
+ used:false,
+ device:"",
+ banned:false
+ });
+}
+alert("Done");
+}
+
+window.searchKey=async()=>{
+let key=document.getElementById("searchKey").value.trim();
+const s=await getDoc(doc(db,"keys",key));
+if(!s.exists()){
+document.getElementById("searchResult").innerText="Not Found";
+return;
+}
+document.getElementById("searchResult").innerText=
+JSON.stringify(s.data(),null,2);
+}
+
+window.rekey=async()=>{
+let key=document.getElementById("manageKey").value.trim();
+await updateDoc(doc(db,"keys",key),{
+used:false,
+device:""
+});
+alert("Reset Done");
+}
+
+window.deleteKey=async()=>{
+let key=document.getElementById("manageKey").value.trim();
+await deleteDoc(doc(db,"keys",key));
+alert("Deleted");
+}
+</script>
+</body>
+</html>
