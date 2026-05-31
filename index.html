@@ -32,6 +32,26 @@ pre{white-space:pre-wrap}
 
 <div class="box">
 <h3>ลบคีย์ / รีคีย์</h3>
+
+<div class="box">
+
+<h3>ประวัติคีย์</h3>
+
+<input
+id="historyKey"
+placeholder="ใส่คีย์"
+/>
+
+<button onclick="viewHistory()">
+
+View History
+
+</button>
+
+<pre id="historyResult"></pre>
+
+</div>
+
 <input id="manageKey" placeholder="KEY">
 <button onclick="rekey()">Reset Device</button>
 <button onclick="deleteKey()">Delete Key</button>
@@ -39,9 +59,18 @@ pre{white-space:pre-wrap}
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
 import {
-getFirestore,doc,setDoc,getDoc,deleteDoc,updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+getFirestore,
+doc,
+setDoc,
+getDoc,
+deleteDoc,
+updateDoc,
+arrayUnion
+}
+from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
 
@@ -116,6 +145,120 @@ let key=document.getElementById("manageKey").value.trim();
 await deleteDoc(doc(db,"keys",key));
 alert("Deleted");
 }
+
+window.saveLoginHistory =
+async function(key){
+
+try{
+
+const ref =
+doc(
+db,
+"keys",
+key
+);
+
+await updateDoc(
+ref,
+{
+
+history:
+
+arrayUnion({
+
+time:
+
+new Date()
+.toLocaleString(),
+
+device:
+
+localStorage
+.getItem(
+"device_id"
+)
+||
+"unknown",
+
+agent:
+
+navigator
+.userAgent
+
+})
+
+}
+
+);
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+window.viewHistory =
+async function(){
+
+let key =
+document
+.getElementById(
+"historyKey"
+)
+.value
+.trim();
+
+const snap =
+await getDoc(
+
+doc(
+db,
+"keys",
+key
+)
+
+);
+
+if(
+!snap.exists()
+){
+
+document
+.getElementById(
+"historyResult"
+)
+.innerText=
+"Not Found";
+
+return;
+
+}
+
+const data =
+snap.data();
+
+document
+.getElementById(
+"historyResult"
+)
+.innerText=
+
+JSON.stringify(
+
+data.history
+||
+[],
+
+null,
+
+2
+
+);
+
+}
+
 </script>
 </body>
 </html>
