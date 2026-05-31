@@ -3,148 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reczssa Admin</title>
+<title>KEY ADMIN PRO</title>
+
 <style>
-body{font-family:Arial;margin:0;background:#fff8f1;padding:20px}
-.box{background:#fff;padding:20px;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,.08);margin-bottom:15px}
-input,button,textarea{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #ddd;box-sizing:border-box}
-button{background:#ff8c00;color:#fff;border:none;font-weight:bold}
+body{
+    font-family:Arial;
+    margin:0;
+    background:#f6f2ff;
+    padding:20px;
+}
+
+.box{
+    background:#fff;
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:15px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+input,button{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    box-sizing:border-box;
+}
+
+button{
+    background:#6a4cff;
+    color:#fff;
+    font-weight:bold;
+    border:none;
+}
+
+button.danger{background:#ff3b3b}
+button.dark{background:#222}
 pre{white-space:pre-wrap}
+.row{display:flex;gap:10px}
+.row button{flex:1}
 </style>
 </head>
+
 <body>
-<h2>Reczssa Admin</h2>
 
+<h2>🔥 KEY ADMIN PRO (D/H/M)</h2>
+
+<!-- CREATE -->
 <div class="box">
+<h3>สร้างคีย์</h3>
 
-<h3>สร้าง Keys</h3>
+<input id="amount" type="number" placeholder="จำนวนคีย์">
 
-<input
-id="amount"
-type="number"
-placeholder="จำนวนคีย์"
->
+<input id="days" type="number" placeholder="วัน">
+<input id="hours" type="number" placeholder="ชั่วโมง">
+<input id="mins" type="number" placeholder="นาที">
 
-<button onclick="createKeys()">
+<button onclick="createKeys()">CREATE + EXPORT</button>
+<button class="dark" onclick="copyKeys()">COPY</button>
+<button class="dark" onclick="exportTxt()">EXPORT TXT</button>
 
-Create Keys
-
-</button>
-
-<button
-onclick="copyKeys()"
-style="
-background:#222;
-margin-top:8px;
-">
-
-Copy All Keys
-
-</button>
-
-<pre
-id="createdKeys"
-style="
-margin-top:15px;
-background:#f4f4f4;
-padding:15px;
-border-radius:12px;
-min-height:120px;
-">
-
-</pre>
-
+<pre id="createdKeys"></pre>
 </div>
 
+<!-- SEARCH -->
 <div class="box">
-
-<h3>คีย์ทั้งหมด</h3>
-
-<button onclick="loadKeys()">
-
-Load All Keys
-
-</button>
-
-<pre
-id="searchResult"
-style="
-max-height:400px;
-overflow:auto;
-">
-
-</pre>
-
+<h3>ค้นหาคีย์</h3>
+<input id="searchKey" placeholder="KEY">
+<button onclick="searchKey()">SEARCH</button>
+<pre id="searchResult"></pre>
 </div>
 
+<!-- MANAGE -->
 <div class="box">
-<h3>ลบคีย์ / รีคีย์</h3>
-
-<div class="box">
-
-<h3>ประวัติคีย์</h3>
-
-<input
-id="historyKey"
-placeholder="ใส่คีย์"
-/>
-
-<button onclick="viewHistory()">
-
-View History
-
-</button>
-
-<pre id="historyResult"></pre>
-
-</div>
+<h3>จัดการคีย์</h3>
 
 <input id="manageKey" placeholder="KEY">
-<button onclick="rekey()">Reset Device</button>
-<button onclick="deleteKey()">Delete Key</button>
+
+<div class="row">
+<button onclick="resetDevice()">RESET</button>
+<button class="danger" onclick="deleteKey()">DELETE</button>
 </div>
 
-window.deleteKey = async function () {
-  const key = document.getElementById("manageKey").value.trim();
+<div class="row">
+<button onclick="banKey()">BAN</button>
+<button onclick="unbanKey()">UNBAN</button>
+</div>
+</div>
 
-  if (!key) {
-    alert("กรอกคีย์ก่อน");
-    return;
-  }
+<!-- ALL -->
+<div class="box">
+<h3>คีย์ทั้งหมด</h3>
+<button onclick="loadKeys()">LOAD ALL</button>
+<pre id="allKeys"></pre>
+</div>
 
-  try {
-    await deleteDoc(doc(db, "keys", key));
-    alert("ลบคีย์สำเร็จ");
-
-    // เคลียร์ช่อง
-    document.getElementById("manageKey").value = "";
-
-    // รีโหลด list (ถ้าต้องการ)
-    loadKeys();
-
-  } catch (e) {
-    console.log(e);
-    alert("ลบไม่สำเร็จ");
-  }
-};
+<!-- LOG -->
+<div class="box">
+<h3>LOG</h3>
+<button onclick="loadLogs()">LOAD LOG</button>
+<pre id="logs"></pre>
+</div>
 
 <script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-
 getFirestore,
 doc,
 setDoc,
 getDoc,
 deleteDoc,
 updateDoc,
-arrayUnion,
 collection,
 getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+/* FIREBASE */
 
 const firebaseConfig = {
 
@@ -162,217 +136,171 @@ appId: "1:1053378935263:web:54cc8d02c8d0af97442c6a"
 
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
+/* LOG */
+function log(action,key){
+setDoc(doc(db,"logs",crypto.randomUUID()),{
+action,
+key,
+time:new Date().toLocaleString()
+});
+}
+
+/* RANDOM KEY */
 function randomKey(){
-
-const chars=
-"ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
-
-let out="";
-
-for(
-let i=0;
-i<12;
-i++
-){
-
-out+=chars[
-Math.floor(
-Math.random()
-*
-chars.length
-)];
-
+const c="ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
+let k="";
+for(let i=0;i<12;i++){
+k+=c[Math.floor(Math.random()*c.length)];
+}
+return k;
 }
 
-return out;
+/* CREATE (D/H/M → ms) */
+window.createKeys = async function(){
 
+let amount=parseInt(amount.value)||1;
+
+let d=parseInt(days.value)||0;
+let h=parseInt(hours.value)||0;
+let m=parseInt(mins.value)||0;
+
+let expireMS =
+((d*24*60)+(h*60)+m) * 60 * 1000;
+
+if(expireMS<=0){
+alert("ใส่เวลาอย่างน้อย 1 นาที");
+return;
 }
 
-window.createKeys =
-async function(){
+let out=[];
 
-let amount =
+for(let i=0;i<amount;i++){
 
-parseInt(
+let key=randomKey();
 
-document
-.getElementById(
-"amount"
-).value
+let expireDate = Date.now() + expireMS;
 
-)||1;
-
-let created=[];
-
-for(
-let i=0;
-i<amount;
-i++
-){
-
-let key=
-randomKey();
-
-let exp=
-new Date();
-
-exp.setDate(
-exp.getDate()+30
-);
-
-await setDoc(
-
-doc(db,"keys",key),
-
-{
-
-expire:
-exp.toISOString(),
-
+await setDoc(doc(db,"keys",key),{
+expire:expireDate,
 used:false,
-
 device:"",
-
-banned:false,
-
-history:[]
-
-}
-
-);
-
-created.push(
-key
-);
-
-}
-
-document
-.getElementById(
-"createdKeys"
-).innerText=
-
-created.join("\n");
-
-alert(
-"สร้าง "+
-created.length+
-" คีย์สำเร็จ"
-);
-
-}
-
-window.copyKeys=
-function(){
-
-navigator
-.clipboard
-.writeText(
-
-document
-.getElementById(
-"createdKeys"
-).innerText
-
-);
-
-alert(
-"คัดลอกแล้ว"
-);
-
-}
-
-window.loadKeys =
-async function(){
-
-const snap =
-
-await getDocs(
-
-collection(
-db,
-"keys"
-)
-
-);
-
-let text="";
-
-snap.forEach(docSnap=>{
-
-const d=
-docSnap.data();
-
-text+=
-
-"KEY : "
-+
-docSnap.id
-+
-"\n"
-
-+
-
-"USED : "
-+
-
-(
-d.used
-?
-"YES"
-:
-"NO"
-)
-
-+
-"\n"
-
-+
-
-"DEVICE : "
-+
-
-(
-d.device
-||
-"NONE"
-)
-
-+
-
-"\n"
-
-+
-
-"EXPIRE : "
-+
-
-d.expire
-
-+
-
-"\n"
-
-+
-
-"----------------\n";
-
+banned:false
 });
 
-document
-.getElementById(
-"searchResult"
-).innerText=
+log("CREATE",key);
+out.push(key);
+}
 
-text ||
+createdKeys.innerText=out.join("\n");
+}
 
-"No Keys";
+/* COPY */
+window.copyKeys=()=>{
+navigator.clipboard.writeText(createdKeys.innerText);
+alert("copied");
+}
 
+/* EXPORT TXT */
+window.exportTxt=()=>{
+const blob=new Blob([createdKeys.innerText],{type:"text/plain"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="keys.txt";
+a.click();
+}
+
+/* SEARCH */
+window.searchKey=async()=>{
+let key=searchKey.value.trim();
+let snap=await getDoc(doc(db,"keys",key));
+
+if(!snap.exists()){
+searchResult.innerText="NOT FOUND";
+return;
+}
+
+let d=snap.data();
+
+searchResult.innerText=
+`KEY: ${key}
+EXPIRE: ${new Date(d.expire).toLocaleString()}
+USED: ${d.used}
+DEVICE: ${d.device||"NONE"}
+BAN: ${d.banned}`;
+}
+
+/* DELETE */
+window.deleteKey=async()=>{
+let key=manageKey.value.trim();
+await deleteDoc(doc(db,"keys",key));
+log("DELETE",key);
+alert("deleted");
+}
+
+/* BAN */
+window.banKey=async()=>{
+let key=manageKey.value.trim();
+await updateDoc(doc(db,"keys",key),{banned:true});
+log("BAN",key);
+alert("banned");
+}
+
+/* UNBAN */
+window.unbanKey=async()=>{
+let key=manageKey.value.trim();
+await updateDoc(doc(db,"keys",key),{banned:false});
+log("UNBAN",key);
+alert("unbanned");
+}
+
+/* RESET */
+window.resetDevice=async()=>{
+let key=manageKey.value.trim();
+await updateDoc(doc(db,"keys",key),{
+device:"",
+used:false
+});
+log("RESET",key);
+alert("reset done");
+}
+
+/* LOAD ALL */
+window.loadKeys=async()=>{
+let snap=await getDocs(collection(db,"keys"));
+let txt="";
+
+snap.forEach(d=>{
+let x=d.data();
+txt+=`
+KEY: ${d.id}
+EXP: ${new Date(x.expire).toLocaleString()}
+USED: ${x.used}
+BAN: ${x.banned}
+DEVICE: ${x.device||"NONE"}
+----------------
+`;
+});
+
+allKeys.innerText=txt;
+}
+
+/* LOGS */
+window.loadLogs=async()=>{
+let snap=await getDocs(collection(db,"logs"));
+let txt="";
+
+snap.forEach(d=>{
+let x=d.data();
+txt+=`${x.time} | ${x.action} | ${x.key}\n`;
+});
+
+logs.innerText=txt;
 }
 
 </script>
+
 </body>
 </html>
