@@ -104,6 +104,30 @@ View History
 <button onclick="deleteKey()">Delete Key</button>
 </div>
 
+window.deleteKey = async function () {
+  const key = document.getElementById("manageKey").value.trim();
+
+  if (!key) {
+    alert("กรอกคีย์ก่อน");
+    return;
+  }
+
+  try {
+    await deleteDoc(doc(db, "keys", key));
+    alert("ลบคีย์สำเร็จ");
+
+    // เคลียร์ช่อง
+    document.getElementById("manageKey").value = "";
+
+    // รีโหลด list (ถ้าต้องการ)
+    loadKeys();
+
+  } catch (e) {
+    console.log(e);
+    alert("ลบไม่สำเร็จ");
+  }
+};
+
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
